@@ -16,31 +16,31 @@ libraryDependencies += "com.github.FRosner" % "repl-helper" % "x.y.z"
 
 ### Use It!
 
-Define the `@Help` annotation on your method like so:
+1. Define the `@Help` annotation on your methods.
 
-```scala
-object MyReplUtil {
+   ```scala
+   object MyReplUtil {
+   
+     @Help(
+       category = "Math",
+       shortDescription = "Add two numbers",
+       longDescription = "Add two numbers. Integer overflow might occur!",
+       parameters = "a: Int, b: Int"
+     )
+     def add(a: Int, b: Int) = a + b
+   
+   }
+   ```
 
-  @Help(
-    category = "Math",
-    shortDescription = "Add two numbers",
-    longDescription = "Add two numbers. Integer overflow might occur!",
-    parameters = "a: Int, b: Int"
-  )
-  def add(a: Int, b: Int) = a + b
+2. Create a helper instance of your class.
 
-}
-```
+   ```scala
+   val myHelper = Helper(MyReplUtil.getClass)
+   ```
 
-Create a helper instance of your class:
+3. Print help to a `PrintStream` of your choice. You can either print all available methods or request detailed help for a particular one.
 
-```scala
-val myHelper = Helper(MyReplUtil.getClass)
-```
-
-Print help to a `PrintStream` of your choice. You can either print all available methods or request detailed help for a particular one:
-
-```scala
-myHelper.printAllMethods(System.out)
-myHelper.printMethods("add", System.out)
-```
+   ```scala
+   myHelper.printAllMethods(System.out)
+   myHelper.printMethods("add", System.out)
+   ```
