@@ -6,7 +6,7 @@ Small library allowing to provide annotation based help text for functions in th
 
 ### Get It
 
-In order to use DDQ, you can add it as a dependency to your project using [JitPack.io](https://jitpack.io/#FRosner/repl-helper). Just add it to your `build.sbt` like this:
+In order to use the REPL helper, you can add it as a dependency to your project using [JitPack.io](https://jitpack.io/#FRosner/repl-helper). Just add it to your `build.sbt` like this:
 
 ```scala
 resolvers += "jitpack" at "https://jitpack.io"
