@@ -50,6 +50,24 @@ class HelperTest extends FlatSpec with Matchers {
     def method(s: String) = ???
   }
 
+  class TestClass3 {
+    @Help(
+      category = "category",
+      shortDescription = "short",
+      longDescription = "long",
+      parameters = "1",
+      parameters2 = "2",
+      parameters3 = "3",
+      parameters4 = "4",
+      parameters5 = "5",
+      parameters6 = "6",
+      parameters7 = "7",
+      parameters8 = "8",
+      parameters9 = "9"
+    )
+    def method = ???
+  }
+
   "A helper" should "offer only help for methods with the correct annotation" in {
     val testClass = new TestClass()
     val helper = Helper(testClass.getClass)
@@ -114,5 +132,28 @@ class HelperTest extends FlatSpec with Matchers {
     )
   }
 
+  "Curried parameters" should "be printed in correct order in the short description" in {
+    val result = new ByteArrayOutputStream()
+    val out = new PrintStream(result)
+    val helper = Helper(new TestClass3().getClass)
+    helper.printAllMethods(out)
+    result.toString.split(NEWLINE, -1) shouldBe Array(
+      s"\033[1mcategory\033[0m [TestClass3]",
+      "- method(1)(2)(3)(4)(5)(6)(7)(8)(9): short",
+      ""
+    )
+  }
+
+  it should "be printed in correct order in the long description" in {
+    val result = new ByteArrayOutputStream()
+    val out = new PrintStream(result)
+    val helper = Helper(new TestClass3().getClass)
+    helper.printMethods("method", out)
+    result.toString.split(NEWLINE, -1) shouldBe Array(
+      s"\033[1mmethod(1)(2)(3)(4)(5)(6)(7)(8)(9)\033[0m [TestClass3]",
+      "long",
+      ""
+    )
+  }
 
 }
