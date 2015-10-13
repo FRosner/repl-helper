@@ -16,6 +16,8 @@ fork in Compile := true
 
 scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 
+javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+
 //////////////////////////
 // Library Dependencies //
 //////////////////////////
