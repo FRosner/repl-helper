@@ -94,11 +94,11 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(new TestClass().getClass)
     helper.printAllMethods(out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-        s"\033[1ma\033[0m [TestClass]",
+        s"${Console.BOLD}a${Console.RESET} [TestClass]",
         "- help(): short help",
         "- xhelp(): short help",
         "",
-        s"\033[1mbbb\033[0m [TestClass]",
+        s"${Console.BOLD}bbb${Console.RESET} [TestClass]",
         "- helpWithParameters(i: Int)(s: String): sph",
         ""
       )
@@ -110,7 +110,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(new TestClass().getClass)
     helper.printMethods("help", out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-        s"\033[1mhelp()\033[0m [TestClass]",
+        s"${Console.BOLD}help()${Console.RESET} [TestClass]",
         "long help",
         ""
       )
@@ -123,10 +123,10 @@ class HelperTest extends FlatSpec with Matchers {
     helper.printMethods("method", out)
     println(result.toString)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"\033[1mmethod()\033[0m [TestClass2]",
+      s"${Console.BOLD}method()${Console.RESET} [TestClass2]",
       "method without parameters",
       "",
-      s"\033[1mmethod(s: String)\033[0m [TestClass2]",
+      s"${Console.BOLD}method(s: String)${Console.RESET} [TestClass2]",
       "method with one parameter",
       ""
     )
@@ -138,7 +138,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(new TestClass3().getClass)
     helper.printAllMethods(out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"\033[1mcategory\033[0m [TestClass3]",
+      s"${Console.BOLD}category${Console.RESET} [TestClass3]",
       "- method(1)(2)(3)(4)(5)(6)(7)(8)(9): short",
       ""
     )
@@ -150,7 +150,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(new TestClass3().getClass)
     helper.printMethods("method", out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"\033[1mmethod(1)(2)(3)(4)(5)(6)(7)(8)(9)\033[0m [TestClass3]",
+      s"${Console.BOLD}method(1)(2)(3)(4)(5)(6)(7)(8)(9)${Console.RESET} [TestClass3]",
       "long",
       ""
     )
@@ -162,7 +162,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(DummyObjectThatIsNoCompanion.getClass)
     helper.printMethods("method", out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"\033[1mmethod()\033[0m [DummyObjectThatIsNoCompanion]",
+      s"${Console.BOLD}method()${Console.RESET} [DummyObjectThatIsNoCompanion]",
       "l",
       ""
     )
@@ -174,7 +174,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(DummyObjectThatIsNoCompanion.getClass)
     helper.printAllMethods(out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"\033[1mc\033[0m [DummyObjectThatIsNoCompanion]",
+      s"${Console.BOLD}c${Console.RESET} [DummyObjectThatIsNoCompanion]",
       "- method(): s",
       ""
     )
