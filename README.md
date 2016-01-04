@@ -1,4 +1,4 @@
-## REPL Helper [![Build Status](https://travis-ci.org/FRosner/repl-helper.svg?branch=master)](https://travis-ci.org/FRosner/repl-helper) [![Coverage Status](https://coveralls.io/repos/FRosner/repl-helper/badge.svg?branch=master&service=github)](https://coveralls.io/github/FRosner/repl-helper?branch=master)
+## REPL Helper [![Build Status](https://travis-ci.org/FRosner/repl-helper.svg?branch=master)](https://travis-ci.org/FRosner/repl-helper) [![Codacy Badge](https://api.codacy.com/project/badge/grade/ee24c8670c944d3aab3d2008206df0c7)](https://www.codacy.com/app/frank_7/repl-helper) [![codecov.io](https://codecov.io/github/FRosner/repl-helper/coverage.svg?branch=master)](https://codecov.io/github/FRosner/repl-helper?branch=master)
 
 ### What is it?
 
