@@ -4,4 +4,5 @@ scala:
    - 2.11.6
 script:
   - sbt ++$TRAVIS_SCALA_VERSION coverage test
-after_success: "sbt coveralls"
+after_success:
+  - pip install --user codecov && codecov
