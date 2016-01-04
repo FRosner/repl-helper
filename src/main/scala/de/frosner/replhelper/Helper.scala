@@ -2,8 +2,6 @@ package de.frosner.replhelper
 
 import java.io._
 
-import scala.util.{Failure, Try}
-
 /**
  * Utility class to provide interactive help for methods of a given class. It scans the class method definitions for
  * the ones that contain a [[Help]] annotation. Use it to print a list of methods with help available or to print
