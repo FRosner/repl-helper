@@ -19,6 +19,8 @@ case class Helper[T](classWithHelp: Class[T]) {
   type ShortDescription = String
   type LongDescription = String
 
+  private val simpleClassName = classWithHelp.getSimpleName.replace("$", "")
+
   private[replhelper] val methods = {
     val methodsThatOfferHelp = classWithHelp.getMethods.filter(method => method.getAnnotations.exists(
       annotation => annotation.isInstanceOf[Help]
@@ -48,7 +50,7 @@ case class Helper[T](classWithHelp: Class[T]) {
   def printAllMethods(out: PrintStream) = out.println(
     methods.map {
       case (category, methods) => {
-        s"\033[1m${category}\033[0m [${classWithHelp.getSimpleName}]" + NEWLINE + methods.map {
+        s"\033[1m${category}\033[0m [$simpleClassName]" + NEWLINE + methods.map {
           case (name, help) => "- " + getMethodSignature(name, help) + s": ${help.shortDescription}"
         }.mkString(NEWLINE)
       }
@@ -90,7 +92,7 @@ case class Helper[T](classWithHelp: Class[T]) {
 
   private def getLongDescriptionPrintable(methodWithHelp: (String, Help), out: PrintStream) = {
     val (name, help) = methodWithHelp
-    s"\033[1m${getMethodSignature(name, help)}\033[0m [${classWithHelp.getSimpleName}]" + NEWLINE + help.longDescription
+    s"\033[1m${getMethodSignature(name, help)}\033[0m [$simpleClassName]" + NEWLINE + help.longDescription
   }
 
 }

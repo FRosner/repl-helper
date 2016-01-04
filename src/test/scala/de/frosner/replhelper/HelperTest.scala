@@ -156,4 +156,28 @@ class HelperTest extends FlatSpec with Matchers {
     )
   }
 
+  "Solitary objects" should "not contain $ in their name when long description is printed" in {
+    val result = new ByteArrayOutputStream()
+    val out = new PrintStream(result)
+    val helper = Helper(DummyObjectThatIsNoCompanion.getClass)
+    helper.printMethods("method", out)
+    result.toString.split(NEWLINE, -1) shouldBe Array(
+      s"\033[1mmethod()\033[0m [DummyObjectThatIsNoCompanion]",
+      "l",
+      ""
+    )
+  }
+
+  it should "not contain $ in their name when short description is printed" in {
+    val result = new ByteArrayOutputStream()
+    val out = new PrintStream(result)
+    val helper = Helper(DummyObjectThatIsNoCompanion.getClass)
+    helper.printAllMethods(out)
+    result.toString.split(NEWLINE, -1) shouldBe Array(
+      s"\033[1mc\033[0m [DummyObjectThatIsNoCompanion]",
+      "- method(): s",
+      ""
+    )
+  }
+
 }
