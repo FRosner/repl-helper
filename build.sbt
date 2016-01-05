@@ -3,7 +3,7 @@
 //////////////////////////////
 organization  := "de.frosner"
 
-version       := "1.0.2"
+version       := "1.1.0-SNAPSHOT"
 
 name          := "repl-helper"
 
