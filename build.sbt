@@ -21,4 +21,6 @@ javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 //////////////////////////
 // Library Dependencies //
 //////////////////////////
+libraryDependencies += "org.reflections" % "reflections" % "0.9.10"
+
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test"

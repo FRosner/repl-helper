@@ -1,41 +1,47 @@
 package de.frosner.replhelper
 
 import java.io.PrintStream
+import java.lang.reflect.Method
+import org.reflections.Reflections
+import org.reflections.scanners.MethodAnnotationsScanner
+import org.reflections.util.{ClasspathHelper, ConfigurationBuilder}
+
+import scala.collection.JavaConversions
+
+import Helper.NEWLINE
 
 /**
- * Utility class to provide interactive help for methods of a given class. It scans the class method definitions for
- * the ones that contain a [[Help]] annotation. Use it to print a list of methods with help available or to print
- * a longer description for individual methods.
- *
- * @param classWithHelp to scan for [[Help]] annotations
- * @tparam T type of the class
+ * Utility class to provide interactive help for methods that are annotated with @Help.
+ * Use it to print a list of methods with help available or to print a longer description for individual methods.
  */
-case class Helper[T](classWithHelp: Class[T]) {
+class Helper private (val reflections: Reflections, val filter: Class[_] => Boolean = clazz => true) {
 
-  import Helper.NEWLINE
   type Name = String
   type ShortDescription = String
   type LongDescription = String
+  type ClassName = String
+  type Category = String
 
-  private val simpleClassName = classWithHelp.getSimpleName.replace("$", "")
+  private def simpleClassName[T](classWithHelp: Class[T]) = classWithHelp.getSimpleName.replace("$", "")
 
-  private[replhelper] val methods = {
-    val methodsThatOfferHelp = classWithHelp.getMethods.filter(method => method.getAnnotations.exists(
-      annotation => annotation.isInstanceOf[Help]
-    ))
+  private[replhelper] val methods: Seq[((ClassName, Category), Seq[(Method, Help)])] = {
+    val methodsThatOfferHelp = JavaConversions.asScalaSet(
+      reflections.getMethodsAnnotatedWith(HelpAnnotationClassUtil.getHelpAnnotationClass)
+    ).toSeq
     val methodsAndHelp = methodsThatOfferHelp.map(method => {
       val helpAnnotation = method.getAnnotations.find(annotation =>
         annotation.isInstanceOf[Help]
       ).get.asInstanceOf[Help]
-      (method.getName, helpAnnotation)
+      (method, helpAnnotation)
     })
-    methodsAndHelp.groupBy {
-      case (name, help) => help.category()
+    val methodsAndHelpFiltered = methodsAndHelp.filter{ case (method, help) => filter(method.getDeclaringClass) }
+    methodsAndHelpFiltered.groupBy {
+      case (method, help) => (simpleClassName(method.getDeclaringClass), help.category())
     }.toList.sortBy {
-      case (category, methods) => category.toLowerCase
+      case ((className, category), categoryClassMethods) => category.toLowerCase
     }.map {
-      case (category, methods) => (category, methods.sortBy {
-        case (name, help) => name
+      case ((className, category), categoryClassMethods) => ((className, category), categoryClassMethods.sortBy {
+        case (method, help) => method.getName
       })
     }
   }
@@ -47,15 +53,16 @@ case class Helper[T](classWithHelp: Class[T]) {
    */
   def printAllMethods(out: PrintStream) = out.println(
     methods.map {
-      case (category, methods) => {
-        s"${Console.BOLD}${category}${Console.RESET} [$simpleClassName]" + NEWLINE + methods.map {
-          case (name, help) => "- " + getMethodSignature(name, help) + s": ${help.shortDescription}"
+      case ((className, category), categoryMethods) => {
+        s"${Console.BOLD}${category}${Console.RESET} [$className]" + NEWLINE + categoryMethods.map {
+          case (method, help) => "- " + getMethodSignature(method, help) + s": ${help.shortDescription}"
         }.mkString(NEWLINE)
       }
     }.mkString(NEWLINE+NEWLINE)
   )
 
-  private def getMethodSignature(name: String, help: Help) = {
+  private def getMethodSignature(method: Method, help: Help) = {
+    val name = method.getName
     s"$name(${help.parameters})" +
       (if (help.parameters2() != "") { "(" + help.parameters2 + ")" } else "") +
       (if (help.parameters3() != "") { "(" + help.parameters3 + ")" } else "") +
@@ -75,26 +82,43 @@ case class Helper[T](classWithHelp: Class[T]) {
    */
   def printMethods(methodName: String, out: PrintStream) = {
     val methodsToPrint = methods.flatMap {
-      case (category, methods) => methods.filter {
-        case (name, help) => name == methodName
-      }
+      case ((className, category), categoryMethods) => categoryMethods.filter {
+        case (method, help) => method.getName == methodName
+      }.map{ case (method, help) => ((className, category), method, help) }
     }
     out.println(
       methodsToPrint.sortBy {
-        case (name, help) => getMethodSignature(name, help)
+        case ((className, category), method, help) => getMethodSignature(method, help)
       }.map {
         methodWithHelp => getLongDescriptionPrintable(methodWithHelp, out)
       }.mkString(NEWLINE+NEWLINE)
     )
   }
 
-  private def getLongDescriptionPrintable(methodWithHelp: (String, Help), out: PrintStream) = {
-    val (name, help) = methodWithHelp
-    s"${Console.BOLD}${getMethodSignature(name, help)}${Console.RESET} [$simpleClassName]" + NEWLINE + help.longDescription
+  private def getLongDescriptionPrintable(methodWithHelp: ((String, String), Method, Help), out: PrintStream) = {
+    val ((className, category), method, help) = methodWithHelp
+    s"${Console.BOLD}${getMethodSignature(method, help)}${Console.RESET} [$className]" + NEWLINE + help.longDescription
   }
 
 }
 
+
 object Helper {
-  val NEWLINE = System.getProperty("line.separator")
+
+  private[replhelper] val NEWLINE = System.getProperty("line.separator")
+
+  /**
+    * Factory method to provide interactive help for methods of a given class. It scans the class method definitions for
+    * the ones that contain a [[Help]] annotation.
+    *
+    * @param clazz to scan for [[Help]] annotations
+    * @tparam T type of the class
+    */
+  def apply[T](clazz: Class[T]): Helper = {
+    val configuration = new ConfigurationBuilder()
+      .setScanners(new MethodAnnotationsScanner())
+      .setUrls(ClasspathHelper.forClass(clazz))
+    new Helper(new Reflections(configuration), c => c == clazz)
+  }
+
 }

@@ -28,10 +28,10 @@ class HelperTest extends FlatSpec with Matchers {
       category = "bbb",
       shortDescription = "sph",
       longDescription = "long parameter help",
-      parameters = "i: Int",
+      parameters = "i: Integer",
       parameters2 = "s: String"
     )
-    def helpWithParameters(i: Int) = ???
+    def helpWithParameters(i: Integer) = ???
   }
 
   class TestClass2 {
@@ -69,23 +69,28 @@ class HelperTest extends FlatSpec with Matchers {
   }
 
   "A helper" should "offer only help for methods with the correct annotation" in {
-    val testClass = new TestClass()
-    val helper = Helper(testClass.getClass)
-    helper.methods.toMap.keySet shouldBe Set("a", "bbb")
+    val testClass = new TestClass().getClass
+    val testClassName = testClass.getSimpleName
+    val helper = Helper(testClass)
 
-    val (aMethodName, aMethodHelp) = helper.methods(0)._2(0)
-    aMethodName shouldBe "help"
-    aMethodHelp.category shouldBe "a"
-    aMethodHelp.shortDescription shouldBe "short help"
-    aMethodHelp.longDescription shouldBe "long help"
+    val expectedHelpMethod = testClass.getMethod("help")
+    val expectedHelpAnnotation = expectedHelpMethod.getAnnotation(HelpAnnotationClassUtil.getHelpAnnotationClass)
 
-    val (bMethodName, bMethodHelp) = helper.methods(1)._2(0)
-    bMethodName shouldBe "helpWithParameters"
-    bMethodHelp.category shouldBe "bbb"
-    bMethodHelp.shortDescription shouldBe "sph"
-    bMethodHelp.longDescription shouldBe "long parameter help"
-    bMethodHelp.parameters shouldBe "i: Int"
-    bMethodHelp.parameters2 shouldBe "s: String"
+    val expectedXHelpMethod = testClass.getMethod("xhelp")
+    val expectedXHelpAnnotation = expectedXHelpMethod.getAnnotation(HelpAnnotationClassUtil.getHelpAnnotationClass)
+
+    val expectedHelpWithParametersMethod = testClass.getMethod("helpWithParameters", classOf[Integer])
+    val expectedHelpWithParametersAnnotation = expectedHelpWithParametersMethod.getAnnotation(HelpAnnotationClassUtil.getHelpAnnotationClass)
+
+    helper.methods shouldBe Seq(
+      (testClassName, "a") -> Seq(
+        (expectedHelpMethod, expectedHelpAnnotation),
+        (expectedXHelpMethod, expectedXHelpAnnotation)
+      ),
+      (testClassName, "bbb") -> Seq(
+        (expectedHelpWithParametersMethod, expectedHelpWithParametersAnnotation)
+      )
+    )
   }
 
   it should "print only the short description in the method listing" in {
@@ -99,7 +104,7 @@ class HelperTest extends FlatSpec with Matchers {
         "- xhelp(): short help",
         "",
         s"${Console.BOLD}bbb${Console.RESET} [TestClass]",
-        "- helpWithParameters(i: Int)(s: String): sph",
+        "- helpWithParameters(i: Integer)(s: String): sph",
         ""
       )
   }
