@@ -34,6 +34,18 @@ class HelperTest extends FlatSpec with Matchers {
     def helpWithParameters(i: Integer) = ???
   }
 
+  object TestClass {
+    val expectedShortOutput = Array(
+      s"${Console.BOLD}a${Console.RESET} [${classOf[TestClass].getSimpleName}]",
+      "- help(): short help",
+      "- xhelp(): short help",
+      "",
+      s"${Console.BOLD}bbb${Console.RESET} [${classOf[TestClass].getSimpleName}]",
+      "- helpWithParameters(i: Integer)(s: String): sph",
+      ""
+    )
+  }
+
   class TestClass2 {
     @Help(
       category = "category",
@@ -48,6 +60,24 @@ class HelperTest extends FlatSpec with Matchers {
       parameters = "s: String"
     )
     def method(s: String) = ???
+  }
+
+  object TestClass2 {
+    val expectedShortOutput = Array(
+      s"${Console.BOLD}category${Console.RESET} [${classOf[TestClass2].getSimpleName}]",
+      "- method(): without parameters",
+      "- method(s: String): with parameters",
+      ""
+    )
+
+    val expectedLongOutput = Array(
+      s"${Console.BOLD}method()${Console.RESET} [${classOf[TestClass2].getSimpleName}]",
+      "method without parameters",
+      "",
+      s"${Console.BOLD}method(s: String)${Console.RESET} [${classOf[TestClass2].getSimpleName}]",
+      "method with one parameter",
+      ""
+    )
   }
 
   class TestClass3 {
@@ -93,20 +123,62 @@ class HelperTest extends FlatSpec with Matchers {
     )
   }
 
-  "When all methods are requested, it" should "show the short description" in {
+  class A {
+    @Help(
+      category = "category",
+      shortDescription = "",
+      longDescription = ""
+    )
+    def method = ???
+  }
+
+  class B {
+    @Help(
+      category = "category",
+      shortDescription = "",
+      longDescription = ""
+    )
+    def method = ???
+  }
+
+  it should "group correctly based on category and class" in {
+    val aClass = classOf[A]
+    val aClassName = aClass.getSimpleName
+    val bClass = classOf[B]
+    val bClassName = bClass.getSimpleName
+    val helper = Helper(aClass, bClass)
+
+    val expectedAMethod = aClass.getMethod("method")
+    val expectedAAnnotation = expectedAMethod.getAnnotation(HelpAnnotationClassUtil.getHelpAnnotationClass)
+    val expectedBMethod = bClass.getMethod("method")
+    val expectedBAnnotation = expectedBMethod.getAnnotation(HelpAnnotationClassUtil.getHelpAnnotationClass)
+
+    val expectedCategory = "category"
+
+    helper.methods shouldBe Seq(
+      (aClassName, expectedCategory) -> Seq(
+        (expectedAMethod, expectedAAnnotation)
+      ),
+      (bClassName, expectedCategory) -> Seq(
+        (expectedBMethod, expectedBAnnotation)
+      )
+    )
+  }
+
+  "When all methods are requested, it" should "show the short description for a single class" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
     val helper = Helper(classOf[TestClass])
     helper.printAllMethods(out)
-    result.toString.split(NEWLINE, -1) shouldBe Array(
-        s"${Console.BOLD}a${Console.RESET} [TestClass]",
-        "- help(): short help",
-        "- xhelp(): short help",
-        "",
-        s"${Console.BOLD}bbb${Console.RESET} [TestClass]",
-        "- helpWithParameters(i: Integer)(s: String): sph",
-        ""
-      )
+    result.toString.split(NEWLINE, -1) shouldBe TestClass.expectedShortOutput
+  }
+
+  it should "show the short description for multiple classes" in {
+    val result = new ByteArrayOutputStream()
+    val out = new PrintStream(result)
+    val helper = Helper(classOf[TestClass], classOf[TestClass2])
+    helper.printAllMethods(out)
+    result.toString.split(NEWLINE, -1) shouldBe TestClass.expectedShortOutput ++ TestClass2.expectedShortOutput
   }
 
   "When specific methods are requested, it" should "show the long description" in {
@@ -127,14 +199,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(classOf[TestClass2])
     helper.printMethods("method", out)
     println(result.toString)
-    result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"${Console.BOLD}method()${Console.RESET} [TestClass2]",
-      "method without parameters",
-      "",
-      s"${Console.BOLD}method(s: String)${Console.RESET} [TestClass2]",
-      "method with one parameter",
-      ""
-    )
+    result.toString.split(NEWLINE, -1) shouldBe TestClass2.expectedLongOutput
   }
 
   "Curried parameters" should "be printed in correct order in the short description" in {

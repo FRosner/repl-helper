@@ -112,13 +112,14 @@ object Helper {
     * the ones that contain a [[Help]] annotation.
     *
     * @param clazz to scan for [[Help]] annotations
-    * @tparam T type of the class
+    * @param otherClazzes to scan for [[Help]] annotations
     */
-  def apply[T](clazz: Class[T]): Helper = {
+  def apply(clazz: Class[_], otherClazzes: Class[_]*): Helper = {
+    val allowedClasses = Set.empty[Class[_]] + clazz ++ otherClazzes
     val configuration = new ConfigurationBuilder()
       .setScanners(new MethodAnnotationsScanner())
       .setUrls(ClasspathHelper.forClass(clazz))
-    new Helper(new Reflections(configuration), c => c == clazz)
+    new Helper(new Reflections(configuration), reflectedClass => allowedClasses.contains(reflectedClass))
   }
 
 }
