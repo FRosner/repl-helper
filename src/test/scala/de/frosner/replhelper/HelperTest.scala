@@ -93,7 +93,7 @@ class HelperTest extends FlatSpec with Matchers {
     )
   }
 
-  it should "print only the short description in the method listing" in {
+  "When all methods are requested, it" should "show the short description" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
     val helper = Helper(new TestClass().getClass)
@@ -109,7 +109,7 @@ class HelperTest extends FlatSpec with Matchers {
       )
   }
 
-  it should "print the long description if a method help is requested" in {
+  "When specific methods are requested, it" should "show the long description" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
     val helper = Helper(new TestClass().getClass)
@@ -121,7 +121,7 @@ class HelperTest extends FlatSpec with Matchers {
       )
   }
 
-  it should "print help for multiple methods if there are multiple methods with the same name but different parameters" in {
+  it should "contain multiple methods with the same name but different parameters" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
     val helper = Helper(new TestClass2().getClass)
