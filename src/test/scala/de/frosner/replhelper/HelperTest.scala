@@ -69,7 +69,7 @@ class HelperTest extends FlatSpec with Matchers {
   }
 
   "A helper" should "offer only help for methods with the correct annotation" in {
-    val testClass = new TestClass().getClass
+    val testClass = classOf[TestClass]
     val testClassName = testClass.getSimpleName
     val helper = Helper(testClass)
 
@@ -96,7 +96,7 @@ class HelperTest extends FlatSpec with Matchers {
   "When all methods are requested, it" should "show the short description" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
-    val helper = Helper(new TestClass().getClass)
+    val helper = Helper(classOf[TestClass])
     helper.printAllMethods(out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
         s"${Console.BOLD}a${Console.RESET} [TestClass]",
@@ -112,7 +112,7 @@ class HelperTest extends FlatSpec with Matchers {
   "When specific methods are requested, it" should "show the long description" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
-    val helper = Helper(new TestClass().getClass)
+    val helper = Helper(classOf[TestClass])
     helper.printMethods("help", out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
         s"${Console.BOLD}help()${Console.RESET} [TestClass]",
@@ -124,7 +124,7 @@ class HelperTest extends FlatSpec with Matchers {
   it should "contain multiple methods with the same name but different parameters" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
-    val helper = Helper(new TestClass2().getClass)
+    val helper = Helper(classOf[TestClass2])
     helper.printMethods("method", out)
     println(result.toString)
     result.toString.split(NEWLINE, -1) shouldBe Array(
@@ -140,7 +140,7 @@ class HelperTest extends FlatSpec with Matchers {
   "Curried parameters" should "be printed in correct order in the short description" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
-    val helper = Helper(new TestClass3().getClass)
+    val helper = Helper(classOf[TestClass3])
     helper.printAllMethods(out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
       s"${Console.BOLD}category${Console.RESET} [TestClass3]",
@@ -152,7 +152,7 @@ class HelperTest extends FlatSpec with Matchers {
   it should "be printed in correct order in the long description" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
-    val helper = Helper(new TestClass3().getClass)
+    val helper = Helper(classOf[TestClass3])
     helper.printMethods("method", out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
       s"${Console.BOLD}method(1)(2)(3)(4)(5)(6)(7)(8)(9)${Console.RESET} [TestClass3]",
