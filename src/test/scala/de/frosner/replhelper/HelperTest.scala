@@ -28,10 +28,26 @@ class HelperTest extends FlatSpec with Matchers {
       category = "bbb",
       shortDescription = "sph",
       longDescription = "long parameter help",
-      parameters = "i: Int",
+      parameters = "i: Integer",
       parameters2 = "s: String"
     )
-    def helpWithParameters(i: Int) = ???
+    def helpWithParameters(i: Integer) = ???
+  }
+
+  object TestClass {
+    val categoryA = "a"
+    val categoryB = "bbb"
+    val name = classOf[TestClass].getSimpleName
+
+    val expectedShortOutput = Array(
+      s"${Console.BOLD}$categoryA${Console.RESET} [$name]",
+      "- help(): short help",
+      "- xhelp(): short help",
+      "",
+      s"${Console.BOLD}$categoryB${Console.RESET} [$name]",
+      "- helpWithParameters(i: Integer)(s: String): sph",
+      ""
+    )
   }
 
   class TestClass2 {
@@ -48,6 +64,27 @@ class HelperTest extends FlatSpec with Matchers {
       parameters = "s: String"
     )
     def method(s: String) = ???
+  }
+
+  object TestClass2 {
+    val category = "category"
+    val name = classOf[TestClass2].getSimpleName
+
+    val expectedShortOutput = Array(
+      s"${Console.BOLD}$category${Console.RESET} [$name]",
+      "- method(): without parameters",
+      "- method(s: String): with parameters",
+      ""
+    )
+
+    val expectedLongOutput = Array(
+      s"${Console.BOLD}method()${Console.RESET} [$name]",
+      "method without parameters",
+      "",
+      s"${Console.BOLD}method(s: String)${Console.RESET} [$name]",
+      "method with one parameter",
+      ""
+    )
   }
 
   class TestClass3 {
@@ -68,77 +105,140 @@ class HelperTest extends FlatSpec with Matchers {
     def method = ???
   }
 
+  object TestClass3 {
+    val name = classOf[TestClass3].getSimpleName
+    val category = "category"
+  }
+
   "A helper" should "offer only help for methods with the correct annotation" in {
-    val testClass = new TestClass()
-    val helper = Helper(testClass.getClass)
-    helper.methods.toMap.keySet shouldBe Set("a", "bbb")
+    val testClass = classOf[TestClass]
+    val helper = Helper(testClass)
 
-    val (aMethodName, aMethodHelp) = helper.methods(0)._2(0)
-    aMethodName shouldBe "help"
-    aMethodHelp.category shouldBe "a"
-    aMethodHelp.shortDescription shouldBe "short help"
-    aMethodHelp.longDescription shouldBe "long help"
+    val expectedHelpMethod = testClass.getMethod("help")
+    val expectedHelpAnnotation = expectedHelpMethod.getAnnotation(HelpAnnotationClassUtil.getHelpAnnotationClass)
 
-    val (bMethodName, bMethodHelp) = helper.methods(1)._2(0)
-    bMethodName shouldBe "helpWithParameters"
-    bMethodHelp.category shouldBe "bbb"
-    bMethodHelp.shortDescription shouldBe "sph"
-    bMethodHelp.longDescription shouldBe "long parameter help"
-    bMethodHelp.parameters shouldBe "i: Int"
-    bMethodHelp.parameters2 shouldBe "s: String"
-  }
+    val expectedXHelpMethod = testClass.getMethod("xhelp")
+    val expectedXHelpAnnotation = expectedXHelpMethod.getAnnotation(HelpAnnotationClassUtil.getHelpAnnotationClass)
 
-  it should "print only the short description in the method listing" in {
-    val result = new ByteArrayOutputStream()
-    val out = new PrintStream(result)
-    val helper = Helper(new TestClass().getClass)
-    helper.printAllMethods(out)
-    result.toString.split(NEWLINE, -1) shouldBe Array(
-        s"${Console.BOLD}a${Console.RESET} [TestClass]",
-        "- help(): short help",
-        "- xhelp(): short help",
-        "",
-        s"${Console.BOLD}bbb${Console.RESET} [TestClass]",
-        "- helpWithParameters(i: Int)(s: String): sph",
-        ""
+    val expectedHelpWithParametersMethod = testClass.getMethod("helpWithParameters", classOf[Integer])
+    val expectedHelpWithParametersAnnotation = expectedHelpWithParametersMethod.getAnnotation(HelpAnnotationClassUtil.getHelpAnnotationClass)
+
+    helper.methods shouldBe Seq(
+      (TestClass.name, TestClass.categoryA) -> Seq(
+        (expectedHelpMethod, expectedHelpAnnotation),
+        (expectedXHelpMethod, expectedXHelpAnnotation)
+      ),
+      (TestClass.name, TestClass.categoryB) -> Seq(
+        (expectedHelpWithParametersMethod, expectedHelpWithParametersAnnotation)
       )
+    )
   }
 
-  it should "print the long description if a method help is requested" in {
+  class A {
+    @Help(
+      category = "category",
+      shortDescription = "",
+      longDescription = ""
+    )
+    def method = ???
+  }
+
+  object A {
+    val name = classOf[A].getSimpleName
+    val category = "category"
+  }
+
+  class B {
+    @Help(
+      category = "category",
+      shortDescription = "",
+      longDescription = ""
+    )
+    def method = ???
+  }
+
+  object B {
+    val name = classOf[B].getSimpleName
+    val category = "category"
+  }
+
+  it should "group correctly based on category and class" in {
+    val aClass = classOf[A]
+    val bClass = classOf[B]
+    val helper = Helper(aClass, bClass)
+
+    val expectedAMethod = aClass.getMethod("method")
+    val expectedAAnnotation = expectedAMethod.getAnnotation(HelpAnnotationClassUtil.getHelpAnnotationClass)
+    val expectedBMethod = bClass.getMethod("method")
+    val expectedBAnnotation = expectedBMethod.getAnnotation(HelpAnnotationClassUtil.getHelpAnnotationClass)
+
+    helper.methods shouldBe Seq(
+      (A.name, A.category) -> Seq(
+        (expectedAMethod, expectedAAnnotation)
+      ),
+      (B.name, B.category) -> Seq(
+        (expectedBMethod, expectedBAnnotation)
+      )
+    )
+  }
+
+  it should "take all methods when no classes are specified" in {
+    val helper = Helper()
+    helper.methods.map{ case (key, value) => key }.toSet shouldBe Set(
+      (TestClass.name, TestClass.categoryA),
+      (TestClass.name, TestClass.categoryB),
+      (TestClass2.name, TestClass2.category),
+      (TestClass3.name, TestClass3.category),
+      (DummyObjectThatIsNoCompanion.name, DummyObjectThatIsNoCompanion.category),
+      (A.name, A.category),
+      (B.name, B.category)
+    )
+  }
+
+  "When all methods are requested, it" should "show the short description for a single class" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
-    val helper = Helper(new TestClass().getClass)
+    val helper = Helper(classOf[TestClass])
+    helper.printAllMethods(out)
+    result.toString.split(NEWLINE, -1) shouldBe TestClass.expectedShortOutput
+  }
+
+  it should "show the short description for multiple classes" in {
+    val result = new ByteArrayOutputStream()
+    val out = new PrintStream(result)
+    val helper = Helper(classOf[TestClass], classOf[TestClass2])
+    helper.printAllMethods(out)
+    result.toString.split(NEWLINE, -1) shouldBe TestClass.expectedShortOutput ++ TestClass2.expectedShortOutput
+  }
+
+  "When specific methods are requested, it" should "show the long description" in {
+    val result = new ByteArrayOutputStream()
+    val out = new PrintStream(result)
+    val helper = Helper(classOf[TestClass])
     helper.printMethods("help", out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-        s"${Console.BOLD}help()${Console.RESET} [TestClass]",
+        s"${Console.BOLD}help()${Console.RESET} [${TestClass.name}]",
         "long help",
         ""
       )
   }
 
-  it should "print help for multiple methods if there are multiple methods with the same name but different parameters" in {
+  it should "contain multiple methods with the same name but different parameters" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
-    val helper = Helper(new TestClass2().getClass)
+    val helper = Helper(classOf[TestClass2])
     helper.printMethods("method", out)
     println(result.toString)
-    result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"${Console.BOLD}method()${Console.RESET} [TestClass2]",
-      "method without parameters",
-      "",
-      s"${Console.BOLD}method(s: String)${Console.RESET} [TestClass2]",
-      "method with one parameter",
-      ""
-    )
+    result.toString.split(NEWLINE, -1) shouldBe TestClass2.expectedLongOutput
   }
 
   "Curried parameters" should "be printed in correct order in the short description" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
-    val helper = Helper(new TestClass3().getClass)
+    val helper = Helper(classOf[TestClass3])
     helper.printAllMethods(out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"${Console.BOLD}category${Console.RESET} [TestClass3]",
+      s"${Console.BOLD}category${Console.RESET} [${TestClass3.name}]",
       "- method(1)(2)(3)(4)(5)(6)(7)(8)(9): short",
       ""
     )
@@ -147,10 +247,10 @@ class HelperTest extends FlatSpec with Matchers {
   it should "be printed in correct order in the long description" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
-    val helper = Helper(new TestClass3().getClass)
+    val helper = Helper(classOf[TestClass3])
     helper.printMethods("method", out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"${Console.BOLD}method(1)(2)(3)(4)(5)(6)(7)(8)(9)${Console.RESET} [TestClass3]",
+      s"${Console.BOLD}method(1)(2)(3)(4)(5)(6)(7)(8)(9)${Console.RESET} [${TestClass3.name}]",
       "long",
       ""
     )
@@ -162,7 +262,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(DummyObjectThatIsNoCompanion.getClass)
     helper.printMethods("method", out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"${Console.BOLD}method()${Console.RESET} [DummyObjectThatIsNoCompanion]",
+      s"${Console.BOLD}method()${Console.RESET} [${DummyObjectThatIsNoCompanion.name}]",
       "l",
       ""
     )
@@ -174,7 +274,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(DummyObjectThatIsNoCompanion.getClass)
     helper.printAllMethods(out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"${Console.BOLD}c${Console.RESET} [DummyObjectThatIsNoCompanion]",
+      s"${Console.BOLD}c${Console.RESET} [${DummyObjectThatIsNoCompanion.name}]",
       "- method(): s",
       ""
     )
