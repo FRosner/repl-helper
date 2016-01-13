@@ -41,7 +41,7 @@ class Helper private (val reflections: Reflections, val filter: Class[_] => Bool
       case ((className, category), categoryClassMethods) => category.toLowerCase
     }.map {
       case ((className, category), categoryClassMethods) => ((className, category), categoryClassMethods.sortBy {
-        case (method, help) => method.getName
+        case (method, help) => (method.getName, method.getParameterTypes.length)
       })
     }
   }
