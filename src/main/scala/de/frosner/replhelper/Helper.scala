@@ -122,4 +122,11 @@ object Helper {
     new Helper(new Reflections(configuration), reflectedClass => allowedClasses.contains(reflectedClass))
   }
 
+  def apply(): Helper = {
+    val configuration = new ConfigurationBuilder()
+      .setScanners(new MethodAnnotationsScanner)
+      .setUrls(ClasspathHelper.forClassLoader())
+    new Helper(new Reflections(configuration))
+  }
+
 }

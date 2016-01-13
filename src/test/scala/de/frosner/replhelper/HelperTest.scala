@@ -35,12 +35,16 @@ class HelperTest extends FlatSpec with Matchers {
   }
 
   object TestClass {
+    val categoryA = "a"
+    val categoryB = "bbb"
+    val name = classOf[TestClass].getSimpleName
+
     val expectedShortOutput = Array(
-      s"${Console.BOLD}a${Console.RESET} [${classOf[TestClass].getSimpleName}]",
+      s"${Console.BOLD}$categoryA${Console.RESET} [$name]",
       "- help(): short help",
       "- xhelp(): short help",
       "",
-      s"${Console.BOLD}bbb${Console.RESET} [${classOf[TestClass].getSimpleName}]",
+      s"${Console.BOLD}$categoryB${Console.RESET} [$name]",
       "- helpWithParameters(i: Integer)(s: String): sph",
       ""
     )
@@ -63,18 +67,21 @@ class HelperTest extends FlatSpec with Matchers {
   }
 
   object TestClass2 {
+    val category = "category"
+    val name = classOf[TestClass2].getSimpleName
+
     val expectedShortOutput = Array(
-      s"${Console.BOLD}category${Console.RESET} [${classOf[TestClass2].getSimpleName}]",
+      s"${Console.BOLD}$category${Console.RESET} [$name]",
       "- method(): without parameters",
       "- method(s: String): with parameters",
       ""
     )
 
     val expectedLongOutput = Array(
-      s"${Console.BOLD}method()${Console.RESET} [${classOf[TestClass2].getSimpleName}]",
+      s"${Console.BOLD}method()${Console.RESET} [$name]",
       "method without parameters",
       "",
-      s"${Console.BOLD}method(s: String)${Console.RESET} [${classOf[TestClass2].getSimpleName}]",
+      s"${Console.BOLD}method(s: String)${Console.RESET} [$name]",
       "method with one parameter",
       ""
     )
@@ -98,9 +105,13 @@ class HelperTest extends FlatSpec with Matchers {
     def method = ???
   }
 
+  object TestClass3 {
+    val name = classOf[TestClass3].getSimpleName
+    val category = "category"
+  }
+
   "A helper" should "offer only help for methods with the correct annotation" in {
     val testClass = classOf[TestClass]
-    val testClassName = testClass.getSimpleName
     val helper = Helper(testClass)
 
     val expectedHelpMethod = testClass.getMethod("help")
@@ -113,11 +124,11 @@ class HelperTest extends FlatSpec with Matchers {
     val expectedHelpWithParametersAnnotation = expectedHelpWithParametersMethod.getAnnotation(HelpAnnotationClassUtil.getHelpAnnotationClass)
 
     helper.methods shouldBe Seq(
-      (testClassName, "a") -> Seq(
+      (TestClass.name, TestClass.categoryA) -> Seq(
         (expectedHelpMethod, expectedHelpAnnotation),
         (expectedXHelpMethod, expectedXHelpAnnotation)
       ),
-      (testClassName, "bbb") -> Seq(
+      (TestClass.name, TestClass.categoryB) -> Seq(
         (expectedHelpWithParametersMethod, expectedHelpWithParametersAnnotation)
       )
     )
@@ -132,6 +143,11 @@ class HelperTest extends FlatSpec with Matchers {
     def method = ???
   }
 
+  object A {
+    val name = classOf[A].getSimpleName
+    val category = "category"
+  }
+
   class B {
     @Help(
       category = "category",
@@ -141,11 +157,14 @@ class HelperTest extends FlatSpec with Matchers {
     def method = ???
   }
 
+  object B {
+    val name = classOf[B].getSimpleName
+    val category = "category"
+  }
+
   it should "group correctly based on category and class" in {
     val aClass = classOf[A]
-    val aClassName = aClass.getSimpleName
     val bClass = classOf[B]
-    val bClassName = bClass.getSimpleName
     val helper = Helper(aClass, bClass)
 
     val expectedAMethod = aClass.getMethod("method")
@@ -153,15 +172,26 @@ class HelperTest extends FlatSpec with Matchers {
     val expectedBMethod = bClass.getMethod("method")
     val expectedBAnnotation = expectedBMethod.getAnnotation(HelpAnnotationClassUtil.getHelpAnnotationClass)
 
-    val expectedCategory = "category"
-
     helper.methods shouldBe Seq(
-      (aClassName, expectedCategory) -> Seq(
+      (A.name, A.category) -> Seq(
         (expectedAMethod, expectedAAnnotation)
       ),
-      (bClassName, expectedCategory) -> Seq(
+      (B.name, B.category) -> Seq(
         (expectedBMethod, expectedBAnnotation)
       )
+    )
+  }
+
+  it should "take all methods when no classes are specified" in {
+    val helper = Helper()
+    helper.methods.map{ case (key, value) => key }.toSet shouldBe Set(
+      (TestClass.name, TestClass.categoryA),
+      (TestClass.name, TestClass.categoryB),
+      (TestClass2.name, TestClass2.category),
+      (TestClass3.name, TestClass3.category),
+      (DummyObjectThatIsNoCompanion.name, DummyObjectThatIsNoCompanion.category),
+      (A.name, A.category),
+      (B.name, B.category)
     )
   }
 
@@ -187,7 +217,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(classOf[TestClass])
     helper.printMethods("help", out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-        s"${Console.BOLD}help()${Console.RESET} [TestClass]",
+        s"${Console.BOLD}help()${Console.RESET} [${TestClass.name}]",
         "long help",
         ""
       )
@@ -208,7 +238,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(classOf[TestClass3])
     helper.printAllMethods(out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"${Console.BOLD}category${Console.RESET} [TestClass3]",
+      s"${Console.BOLD}category${Console.RESET} [${TestClass3.name}]",
       "- method(1)(2)(3)(4)(5)(6)(7)(8)(9): short",
       ""
     )
@@ -220,7 +250,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(classOf[TestClass3])
     helper.printMethods("method", out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"${Console.BOLD}method(1)(2)(3)(4)(5)(6)(7)(8)(9)${Console.RESET} [TestClass3]",
+      s"${Console.BOLD}method(1)(2)(3)(4)(5)(6)(7)(8)(9)${Console.RESET} [${TestClass3.name}]",
       "long",
       ""
     )
@@ -232,7 +262,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(DummyObjectThatIsNoCompanion.getClass)
     helper.printMethods("method", out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"${Console.BOLD}method()${Console.RESET} [DummyObjectThatIsNoCompanion]",
+      s"${Console.BOLD}method()${Console.RESET} [${DummyObjectThatIsNoCompanion.name}]",
       "l",
       ""
     )
@@ -244,7 +274,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(DummyObjectThatIsNoCompanion.getClass)
     helper.printAllMethods(out)
     result.toString.split(NEWLINE, -1) shouldBe Array(
-      s"${Console.BOLD}c${Console.RESET} [DummyObjectThatIsNoCompanion]",
+      s"${Console.BOLD}c${Console.RESET} [${DummyObjectThatIsNoCompanion.name}]",
       "- method(): s",
       ""
     )

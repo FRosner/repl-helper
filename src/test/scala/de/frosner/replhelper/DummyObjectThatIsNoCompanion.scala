@@ -9,4 +9,7 @@ object DummyObjectThatIsNoCompanion {
   )
   def method = ???
 
+  val name = this.getClass.getSimpleName.replace("$", "")
+  val category = "c"
+
 }
