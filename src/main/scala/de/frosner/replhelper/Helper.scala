@@ -9,7 +9,7 @@ import org.reflections.util.{ClasspathHelper, ConfigurationBuilder}
 
 import scala.collection.JavaConversions
 
-import Helper.NEWLINE
+import Helper.NewLine
 
 /**
  * Utility class to provide interactive help for methods that are annotated with @Help.
@@ -55,11 +55,11 @@ class Helper private (val reflections: Reflections, val filter: Class[_] => Bool
   def printAllMethods(out: PrintStream) = out.println(
     methods.map {
       case ((className, category), categoryMethods) => {
-        s"${Console.BOLD}${category}${Console.RESET} [$className]" + NEWLINE + categoryMethods.map {
+        s"${Console.BOLD}${category}${Console.RESET} [$className]" + NewLine + categoryMethods.map {
           case (method, help) => "- " + getMethodSignature(method, help) + s": ${help.shortDescription}"
-        }.mkString(NEWLINE)
+        }.mkString(NewLine)
       }
-    }.mkString(NEWLINE+NEWLINE)
+    }.mkString(NewLine+NewLine)
   )
 
   private def getMethodSignature(method: Method, help: Help) = {
@@ -92,13 +92,13 @@ class Helper private (val reflections: Reflections, val filter: Class[_] => Bool
         case ((className, category), method, help) => getMethodSignature(method, help)
       }.map {
         methodWithHelp => getLongDescriptionPrintable(methodWithHelp, out)
-      }.mkString(NEWLINE+NEWLINE)
+      }.mkString(NewLine+NewLine)
     )
   }
 
   private def getLongDescriptionPrintable(methodWithHelp: ((String, String), Method, Help), out: PrintStream) = {
     val ((className, category), method, help) = methodWithHelp
-    s"${Console.BOLD}${getMethodSignature(method, help)}${Console.RESET} [$className]" + NEWLINE + help.longDescription
+    s"${Console.BOLD}${getMethodSignature(method, help)}${Console.RESET} [$className]" + NewLine + help.longDescription
   }
 
 }
@@ -106,7 +106,7 @@ class Helper private (val reflections: Reflections, val filter: Class[_] => Bool
 
 object Helper {
 
-  private[replhelper] val NEWLINE = System.getProperty("line.separator")
+  private[replhelper] val NewLine = System.getProperty("line.separator")
 
   /**
     * Factory method to provide interactive help for methods of a given class. It scans the class method definitions for

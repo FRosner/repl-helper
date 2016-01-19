@@ -4,7 +4,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 import org.reflections.util.ClasspathHelper
 import org.scalatest.{FlatSpec, Matchers}
-import Helper.NEWLINE
+import Helper.NewLine
 
 class HelperTest extends FlatSpec with Matchers {
   
@@ -214,7 +214,7 @@ class HelperTest extends FlatSpec with Matchers {
     val out = new PrintStream(result)
     val helper = Helper(classOf[TestClass])
     helper.printAllMethods(out)
-    result.toString.split(NEWLINE, -1) shouldBe TestClass.expectedShortOutput
+    result.toString.split(NewLine, -1) shouldBe TestClass.expectedShortOutput
   }
 
   it should "show the short description for multiple classes" in {
@@ -222,7 +222,7 @@ class HelperTest extends FlatSpec with Matchers {
     val out = new PrintStream(result)
     val helper = Helper(classOf[TestClass], classOf[TestClass2])
     helper.printAllMethods(out)
-    result.toString.split(NEWLINE, -1) shouldBe TestClass.expectedShortOutput ++ TestClass2.expectedShortOutput
+    result.toString.split(NewLine, -1) shouldBe TestClass.expectedShortOutput ++ TestClass2.expectedShortOutput
   }
 
   "When specific methods are requested, it" should "show the long description" in {
@@ -230,7 +230,7 @@ class HelperTest extends FlatSpec with Matchers {
     val out = new PrintStream(result)
     val helper = Helper(classOf[TestClass])
     helper.printMethods("help", out)
-    result.toString.split(NEWLINE, -1) shouldBe Array(
+    result.toString.split(NewLine, -1) shouldBe Array(
         s"${Console.BOLD}help()${Console.RESET} [${TestClass.name}]",
         "long help",
         ""
@@ -243,7 +243,7 @@ class HelperTest extends FlatSpec with Matchers {
     val helper = Helper(classOf[TestClass2])
     helper.printMethods("method", out)
     println(result.toString)
-    result.toString.split(NEWLINE, -1) shouldBe TestClass2.expectedLongOutput
+    result.toString.split(NewLine, -1) shouldBe TestClass2.expectedLongOutput
   }
 
   "Curried parameters" should "be printed in correct order in the short description" in {
@@ -251,7 +251,7 @@ class HelperTest extends FlatSpec with Matchers {
     val out = new PrintStream(result)
     val helper = Helper(classOf[TestClass3])
     helper.printAllMethods(out)
-    result.toString.split(NEWLINE, -1) shouldBe Array(
+    result.toString.split(NewLine, -1) shouldBe Array(
       s"${Console.BOLD}category${Console.RESET} [${TestClass3.name}]",
       "- method(1)(2)(3)(4)(5)(6)(7)(8)(9): short",
       ""
@@ -263,7 +263,7 @@ class HelperTest extends FlatSpec with Matchers {
     val out = new PrintStream(result)
     val helper = Helper(classOf[TestClass3])
     helper.printMethods("method", out)
-    result.toString.split(NEWLINE, -1) shouldBe Array(
+    result.toString.split(NewLine, -1) shouldBe Array(
       s"${Console.BOLD}method(1)(2)(3)(4)(5)(6)(7)(8)(9)${Console.RESET} [${TestClass3.name}]",
       "long",
       ""
@@ -275,7 +275,7 @@ class HelperTest extends FlatSpec with Matchers {
     val out = new PrintStream(result)
     val helper = Helper(DummyObjectThatIsNoCompanion.getClass)
     helper.printMethods("method", out)
-    result.toString.split(NEWLINE, -1) shouldBe Array(
+    result.toString.split(NewLine, -1) shouldBe Array(
       s"${Console.BOLD}method()${Console.RESET} [${DummyObjectThatIsNoCompanion.name}]",
       "l",
       ""
@@ -287,7 +287,7 @@ class HelperTest extends FlatSpec with Matchers {
     val out = new PrintStream(result)
     val helper = Helper(DummyObjectThatIsNoCompanion.getClass)
     helper.printAllMethods(out)
-    result.toString.split(NEWLINE, -1) shouldBe Array(
+    result.toString.split(NewLine, -1) shouldBe Array(
       s"${Console.BOLD}c${Console.RESET} [${DummyObjectThatIsNoCompanion.name}]",
       "- method(): s",
       ""
