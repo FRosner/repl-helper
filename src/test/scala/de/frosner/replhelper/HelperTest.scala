@@ -2,6 +2,7 @@ package de.frosner.replhelper
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
+import org.reflections.util.ClasspathHelper
 import org.scalatest.{FlatSpec, Matchers}
 import Helper.NEWLINE
 
@@ -184,6 +185,19 @@ class HelperTest extends FlatSpec with Matchers {
 
   it should "take all methods when no classes are specified" in {
     val helper = Helper()
+    helper.methods.map{ case (key, value) => key }.toSet shouldBe Set(
+      (TestClass.name, TestClass.categoryA),
+      (TestClass.name, TestClass.categoryB),
+      (TestClass2.name, TestClass2.category),
+      (TestClass3.name, TestClass3.category),
+      (DummyObjectThatIsNoCompanion.name, DummyObjectThatIsNoCompanion.category),
+      (A.name, A.category),
+      (B.name, B.category)
+    )
+  }
+
+  it should "take all methods in the given URL" in {
+    val helper = Helper(ClasspathHelper.forClass(this.getClass))
     helper.methods.map{ case (key, value) => key }.toSet shouldBe Set(
       (TestClass.name, TestClass.categoryA),
       (TestClass.name, TestClass.categoryB),

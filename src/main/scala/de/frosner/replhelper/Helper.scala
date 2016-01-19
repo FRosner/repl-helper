@@ -2,6 +2,7 @@ package de.frosner.replhelper
 
 import java.io.PrintStream
 import java.lang.reflect.Method
+import java.net.URL
 import org.reflections.Reflections
 import org.reflections.scanners.MethodAnnotationsScanner
 import org.reflections.util.{ClasspathHelper, ConfigurationBuilder}
@@ -123,9 +124,13 @@ object Helper {
   }
 
   def apply(): Helper = {
+    apply(JavaConversions.collectionAsScalaIterable(ClasspathHelper.forClassLoader()).toSeq: _*)
+  }
+
+  def apply(urls: URL*): Helper = {
     val configuration = new ConfigurationBuilder()
       .setScanners(new MethodAnnotationsScanner)
-      .setUrls(ClasspathHelper.forClassLoader())
+      .setUrls(urls: _*)
     new Helper(new Reflections(configuration))
   }
 
