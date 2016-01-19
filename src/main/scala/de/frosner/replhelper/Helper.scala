@@ -118,7 +118,7 @@ object Helper {
     val allowedClasses = Set.empty[Class[_]] + clazz ++ otherClazzes
     val configuration = new ConfigurationBuilder()
       .setScanners(new MethodAnnotationsScanner())
-      .setUrls(ClasspathHelper.forClass(clazz))
+      .setUrls(allowedClasses.map(ClasspathHelper.forClass(_)).toSeq: _*)
     new Helper(new Reflections(configuration), reflectedClass => allowedClasses.contains(reflectedClass))
   }
 
