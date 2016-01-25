@@ -225,6 +225,14 @@ class HelperTest extends FlatSpec with Matchers {
     result.toString.split(NewLine, -1) shouldBe TestClass.expectedShortOutput ++ TestClass2.expectedShortOutput
   }
 
+  it should "not show duplicate entries for singleton objects" in {
+    val result = new ByteArrayOutputStream()
+    val out = new PrintStream(result)
+    val helper = Helper(ClasspathHelper.forClass(DummyObjectThatIsNoCompanion.getClass))
+    helper.printAllMethods(out)
+    result.toString.split(NewLine, -1).count(_ == DummyObjectThatIsNoCompanion.expectedMethodShortDescription) shouldBe 1
+  }
+
   "When specific methods are requested, it" should "show the long description" in {
     val result = new ByteArrayOutputStream()
     val out = new PrintStream(result)
@@ -245,6 +253,16 @@ class HelperTest extends FlatSpec with Matchers {
     println(result.toString)
     result.toString.split(NewLine, -1) shouldBe TestClass2.expectedLongOutput
   }
+
+  it should "not show duplicate entries for singleton objects" in {
+    val result = new ByteArrayOutputStream()
+    val out = new PrintStream(result)
+    val helper = Helper(ClasspathHelper.forClass(DummyObjectThatIsNoCompanion.getClass))
+    helper.printMethods("method", out)
+    println(result)
+    result.toString.split(NewLine, -1).count(_ == DummyObjectThatIsNoCompanion.expectedMethodLongDescription) shouldBe 1
+  }
+
 
   "Curried parameters" should "be printed in correct order in the short description" in {
     val result = new ByteArrayOutputStream()
@@ -275,11 +293,7 @@ class HelperTest extends FlatSpec with Matchers {
     val out = new PrintStream(result)
     val helper = Helper(DummyObjectThatIsNoCompanion.getClass)
     helper.printMethods("method", out)
-    result.toString.split(NewLine, -1) shouldBe Array(
-      s"${Console.BOLD}method()${Console.RESET} [${DummyObjectThatIsNoCompanion.name}]",
-      "l",
-      ""
-    )
+    result.toString.split(NewLine, -1) shouldBe DummyObjectThatIsNoCompanion.expectedLongDescription
   }
 
   it should "not contain $ in their name when short description is printed" in {
@@ -287,11 +301,7 @@ class HelperTest extends FlatSpec with Matchers {
     val out = new PrintStream(result)
     val helper = Helper(DummyObjectThatIsNoCompanion.getClass)
     helper.printAllMethods(out)
-    result.toString.split(NewLine, -1) shouldBe Array(
-      s"${Console.BOLD}c${Console.RESET} [${DummyObjectThatIsNoCompanion.name}]",
-      "- method(): s",
-      ""
-    )
+    result.toString.split(NewLine, -1) shouldBe DummyObjectThatIsNoCompanion.expectedShortDescription
   }
 
 }

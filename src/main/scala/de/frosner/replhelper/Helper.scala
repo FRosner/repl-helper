@@ -57,7 +57,7 @@ class Helper private (val reflections: Reflections, val filter: Class[_] => Bool
       case ((className, category), categoryMethods) => {
         s"${Console.BOLD}${category}${Console.RESET} [$className]" + NewLine + categoryMethods.map {
           case (method, help) => "- " + getMethodSignature(method, help) + s": ${help.shortDescription}"
-        }.mkString(NewLine)
+        }.distinct.mkString(NewLine)
       }
     }.mkString(NewLine+NewLine)
   )
@@ -92,7 +92,7 @@ class Helper private (val reflections: Reflections, val filter: Class[_] => Bool
         case ((className, category), method, help) => getMethodSignature(method, help)
       }.map {
         methodWithHelp => getLongDescriptionPrintable(methodWithHelp, out)
-      }.mkString(NewLine+NewLine)
+      }.distinct.mkString(NewLine+NewLine)
     )
   }
 
